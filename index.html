@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9 AM SHOP - Online Clothing Store</title>
+    <!-- Tailwind CSS CDN for Modern Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+
+    <!-- Top Admin Notification Bar (Hidden by default) -->
+    <div id="adminBanner" class="bg-black text-white text-xs py-2 px-4 text-center hidden">
+        <span>🔒 Admin Mode Active: You can manage products and categories.</span>
+        <button onclick="toggleAdminPanel()" class="ml-4 underline text-red-400 font-bold">Close Panel</button>
+    </div>
+
+    <!-- Header Section -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between shadow-sm">
+        <div class="flex items-center space-x-3">
+            <button onclick="openCategorySheet()" class="text-xl p-2 rounded-lg hover:bg-gray-100 transition">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <h1 onclick="handleBrandClick()" id="brandTitle" class="text-2xl font-black tracking-widest uppercase cursor-pointer select-none">
+                9 AM SHOP
+            </h1>
+        </div>
+        <div class="flex items-center space-x-5 text-lg">
+            <button onclick="openUploadDialog()" class="bg-black text-white text-xs px-3 py-1.5 rounded-full font-medium hover:bg-gray-800 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-xs"></i> Add Items
+            </button>
+            <button class="hover:text-red-500 transition"><i class="fa-regular fa-heart"></i></button>
+            <button class="relative hover:text-black transition">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span id="cartCount" class="absolute -top-2 -right-2 bg-black text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Store Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-8 w-full">
+        <!-- Category Filter Pills -->
+        <div class="flex items-center space-x-3 overflow-x-auto pb-6 mb-4 no-scrollbar">
+            <button onclick="filterCategory('all')" class="cat-btn px-5 py-2 rounded-full text-sm font-semibold bg-black text-white whitespace-nowrap shadow-sm">All Products</button>
+            <button onclick="filterCategory('shirts')" class="cat-btn px-5 py-2 rounded-full text-sm font-semibold bg-white border border-gray-200 text-gray-700 whitespace-nowrap hover:border-black transition">Shirts</button>
+            <button onclick="filterCategory('sneakers')" class="cat-btn px-5 py-2 rounded-full text-sm font-semibold bg-white border border-gray-200 text-gray-700 whitespace-nowrap hover:border-black transition">Footwear</button>
+            <button onclick="filterCategory('trousers')" class="cat-btn px-5 py-2 rounded-full text-sm font-semibold bg-white border border-gray-200 text-gray-700 whitespace-nowrap hover:border-black transition">Trousers & Jeans</button>
+        </div>
+
+        <!-- Product Grid -->
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Dynamic Products will be rendered here -->
+        </div>
+    </main>
+
+    <!-- Category Sheet (Drawer) -->
+    <div id="categorySheet" class="fixed inset-0 bg-black/50 z-50 hidden transition-opacity">
+        <div class="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl p-6 flex flex-col">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-lg font-bold tracking-wide uppercase">Categories</h2>
+                <button onclick="closeCategorySheet()" class="text-xl p-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <ul class="space-y-4 font-medium text-gray-700">
+                <li onclick="filterCategory('all'); closeCategorySheet();" class="cursor-pointer hover:text-black py-1">📂 All Collections</li>
+                <li onclick="filterCategory('shirts'); closeCategorySheet();" class="cursor-pointer hover:text-black py-1">👔 Shirts & Formals</li>
+                <li onclick="filterCategory('sneakers'); closeCategorySheet();" class="cursor-pointer hover:text-black py-1">👟 Sneakers & Shoes</li>
+                <li onclick="filterCategory('trousers'); closeCategorySheet();" class="cursor-pointer hover:text-black py-1">👖 Trousers & Denim</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Upload / Add Bulk Items Modal -->
+    <div id="uploadModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">✨ Add Bulk Items / Auto-Detect</h3>
+                <button onclick="closeUploadDialog()" class="text-gray-500 hover:text-black"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-gray-500 mb-4">Upload or paste image links to auto-categorize and list items into your store instantly.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold mb-1 uppercase text-gray-600">Product Title</label>
+                    <input type="text" id="newTitle" placeholder="e.g. Premium Linen Shirt" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-black">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 uppercase text-gray-600">Image URL</label>
+                    <input type="text" id="newImg" placeholder="https://images.unsplash.com/..." class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-black">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 uppercase text-gray-600">Category</label>
+                    <select id="newCat" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-black bg-white">
+                        <option value="shirts">Shirts</option>
+                        <option value="sneakers">Sneakers</option>
+                        <option value="trousers">Trousers</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 uppercase text-gray-600">Price (₹)</label>
+                    <input type="number" id="newPrice" placeholder="1499" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-black">
+                </div>
+                <button onclick="addNewProduct()" class="w-full bg-black text-white font-bold py-2.5 rounded-lg hover:bg-gray-800 transition text-sm">Save & Publish to Store</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 text-center py-6 text-xs text-gray-500">
+        © 2026 9 AM SHOP. Powered by GitHub Pages.
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Initial Products Data
+        let products = [
+            { id: 1, title: "Casual Oversized Shirt", category: "shirts", price: 1299, image: "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?w=600" },
+            { id: 2, title: "Classic Red Sneakers", category: "sneakers", price: 2499, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600" },
+            { id: 3, title: "Slim Fit Denim Trousers", category: "trousers", price: 1799, image: "https://images.unsplash.com/photo-1516257984-b1b4d707412e?w=600" },
+            { id: 4, title: "Formal Business Shirt", category: "shirts", price: 1499, image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600" }
+        ];
+
+        let cartCount = 0;
+        let clickCount = 0;
+
+        function renderProducts(filter = 'all') {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+            
+            const filtered = filter === 'all' ? products : products.filter(p => p.category === filter);
+            
+            if(filtered.length === 0) {
+                grid.innerHTML = <div class="col-span-full text-center py-12 text-gray-400">No products found in this category.</div>;
+                return;
+            }
+
+            filtered.forEach(p => {
+                grid.innerHTML += `
+                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition group">
+                        <div class="relative overflow-hidden bg-gray-100 h-80">
+                            <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <button onclick="toggleWishlist(this)" class="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-2 rounded-full shadow hover:bg-white transition text-gray-700">
+                                <i class="fa-regular fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="font-semibold text-sm mb-1 truncate">${p.title}</h3>
+                            <div class="flex items-center justify-between mt-3">
+                                <span class="font-bold text-base">₹${p.price}</span>
+                                <button onclick="addToCart()" class="bg-black text-white text-xs px-3 py-1.5 rounded-lg hover:bg-gray-800 transition font-medium">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterCategory(cat) {
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-black', 'text-white');
+                btn.classList.add('bg-white', 'border', 'border-gray-200', 'text-gray-700');
+            });
+            event.target.classList.remove('bg-white', 'border', 'border-gray-200', 'text-gray-700');
+            event.target.classList.add('bg-black', 'text-white');
+            renderProducts(cat);
+        }
+
+        function addToCart() {
+            cartCount++;
+            document.getElementById('cartCount').innerText = cartCount;
+            alert("Item added to bag successfully!");
+        }
+
+        function toggleWishlist(btn) {
+            const icon = btn.querySelector('i');
+            icon.classList.toggle('fa-regular');
+            icon.classList.toggle('fa-solid');
+            icon.classList.toggle('text-red-500');
+        }
+
+        // Secret Admin Mode Trigger (Click brand title 3 times quickly)
+        function handleBrandClick() {
+            clickCount++;
+            setTimeout(() => { clickCount = 0; }, 1000);
+            if (clickCount >= 3) {
+                let pin = prompt("Enter Admin PIN (Default: 1234):");
+                if (pin === "1234") {
+                    document.getElementById('adminBanner').classList.remove('hidden');
+                    alert("Admin Mode Unlocked Successfully!");
+                } else if (pin !== null) {
+                    alert("Incorrect PIN!");
+                }
+                clickCount = 0;
+            }
+        }
+
+        function toggleAdminPanel() {
+            document.getElementById('adminBanner').classList.add('hidden');
+        }
+
+        // Drawer Category Sheet
+        function openCategorySheet() { document.getElementById('categorySheet').classList.remove('hidden'); }
+        function closeCategorySheet() { document.getElementById('categorySheet').classList.add('hidden'); }
+
+        // Upload Dialog
+        function openUploadDialog() { document.getElementById('uploadModal').classList.remove('hidden'); document.getElementById('uploadModal').classList.add('flex'); }
+        function closeUploadDialog() { document.getElementById('uploadModal').classList.add('hidden'); document.getElementById('uploadModal').classList.remove('flex'); }
+
+        function addNewProduct() {
+            const title = document.getElementById('newTitle').value;
+            const image = document.getElementById('newImg').value;
+            const category = document.getElementById('newCat').value;
+            const price = document.getElementById('newPrice').value;
+
+            if(!title || !image || !price) {
+                alert("Please fill all fields!");
+                return;
+            }
+
+            products.unshift({ id: Date.now(), title, category, price: Number(price), image });
+            renderProducts('all');
+            closeUploadDialog();
+            alert("Product published successfully!");
+            
+            // Reset fields
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newImg').value = '';
+            document.getElementById('newPrice').value = '';
+        }
+
+        // Initial Load
+        renderProducts('all');
+    </script>
+</body>
+</html>
